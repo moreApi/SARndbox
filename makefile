@@ -71,7 +71,12 @@ SHAREINSTALLDIR = $(INSTALLDIR)/$(RESOURCEDIR)
 # Specify additional compiler and linker flags
 ########################################################################
 
-CFLAGS += -Wall -pedantic
+CFLAGS += -Wall -pedantic -g -O0
+
+# Adding c++11 support - SARB
+CFLAGS += -c $(DEBUG) -std=c++11 -lpthread
+LFLAGS += $(DEBUG) -std=c++11 -lpthread
+CXXFLAGS +=  -g -O0 -c $(DEBUG) -std=c++11 -lpthread
 
 ########################################################################
 # List common packages used by all components of this project
@@ -161,7 +166,16 @@ SARNDBOX_SOURCES = FrameFilter.cpp \
                    DEM.cpp \
                    DEMTool.cpp \
                    BathymetrySaverTool.cpp \
-                   Sandbox.cpp
+                   Sandbox.cpp \
+                   server/tcpAcceptor.cpp \
+				   server/tcp_stream.cpp \
+				   server/ServerHandler.cpp \
+				   server/packet.cpp \
+				   server/textureManager.cpp
+
+# Try to use this one in the future
+SERVER_SOURCES = server/tcpAcceptor.cpp \
+				 server/tcpStream.cpp
 
 $(EXEDIR)/SARndbox: $(SARNDBOX_SOURCES:%.cpp=$(OBJDIR)/%.o)
 .PHONY: SARndbox

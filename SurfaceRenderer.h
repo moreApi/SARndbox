@@ -67,7 +67,9 @@ class SurfaceRenderer:public GLObject
 		};
 	
 	/* Elements: */
-	const DepthImageRenderer* depthImageRenderer; // Renderer for low-level surface rendering
+	public: // Height Extract Change
+		const DepthImageRenderer* depthImageRenderer; // Renderer for low-level surface rendering
+	private:
 	unsigned int depthImageSize[2]; // Size of depth image texture
 	PTransform tangentDepthProjection; // Transposed depth projection matrix for tangent planes, i.e., homogeneous normal vectors
 	IO::FileMonitor fileMonitor; // Monitor to watch the renderer's external shader source files

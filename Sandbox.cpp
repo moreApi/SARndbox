@@ -256,6 +256,27 @@ void Sandbox::receiveFilteredFrame(const Kinect::FrameBuffer& frameBuffer)
 	{
 	/* Put the new frame into the frame input buffer: */
 	filteredFrames.postNewValue(frameBuffer);
+
+	// Height Extract Change
+	if(this->m_serverHandler != nullptr)
+	{
+
+		Kinect::FrameBuffer tempFrameBuffer;
+		//assume first renderSetting is the right one TODO:make shure
+		tempFrameBuffer = renderSettings[0].surfaceRenderer->depthImageRenderer->getHeightMap();
+
+		std::vector<std::vector<float>> heightMapServer(640, std::vector<float>(480));
+		for(int i = 0; i < 640; i++)
+		{
+			for(int j = 0; j < 480; j++)
+			{
+				heightMapServer[i][j] = tempFrameBuffer.getData<float>()[(i*480)+j];
+			}
+		}
+		//std::cerr<< heightMapServer[50][50] << ":" << heightMapServer[150][150] << ":" << heightMapServer[250][250] << std::endl;
+
+		this->m_serverHandler->setHeightMap(heightMapServer);
+	}
 	
 	/* Wake up the foreground thread: */
 	Vrui::requestUpdate();
@@ -550,7 +571,9 @@ Sandbox::Sandbox(int& argc,char**& argv)
 	 activeDem(0),
 	 mainMenu(0),pauseUpdatesToggle(0),waterControlDialog(0),
 	 waterSpeedSlider(0),waterMaxStepsSlider(0),frameRateTextField(0),waterAttenuationSlider(0),
-	 controlPipeFd(-1)
+	 controlPipeFd(-1),
+     m_serverHandler(nullptr), // SARB // Height Extract Change
+     m_printFileSARB(false)    // SARB // Height Extract Change
 	{
 	/* Read the sandbox's default configuration parameters: */
 	std::string sandboxConfigFileName=CONFIG_CONFIGDIR;
@@ -768,6 +791,25 @@ Sandbox::Sandbox(int& argc,char**& argv)
 				++i;
 				controlPipeName=argv[i];
 				}
+			// Height Extract Change Start
+			// SARB::Start Server command line argument
+			else if(strcasecmp(argv[i]+1,"server")==0)
+			{
+				// Start the server. Simple way to do it in c++11 where we do
+				// not have std::make_unique. We assigned the serverHandler to nullptr
+				// as a initializer list.
+				++i;
+				this->m_serverHandler.reset(new SARB::ServerHandler(atoi(argv[i])));
+			}
+
+			else if(strcasecmp(argv[i]+1,"sarbfile")==0)
+
+			{
+				// Start the server. Simple way to do it in c++11 where we do
+				// not have std::make_unique. We assigned the serverHandler to nullptr
+				// as a initializer list.
+				 this->m_printFileSARB = false;
+			} //Change End
 			else
 				std::cerr<<"Ignoring unrecognized command line switch "<<argv[i]<<std::endl;
 			}
@@ -777,6 +819,17 @@ Sandbox::Sandbox(int& argc,char**& argv)
 	if(printHelp)
 		printUsage();
 	
+	// Height Extract Change
+	 /* SARB - start the server in the server thread. and detach it*/
+	if(m_serverHandler != nullptr)
+	{
+	   // Start the server in its own thread
+	   this->m_serverHandler->startServer();
+
+	   // Detach the server.
+	   this->m_serverHandler->detachServer();
+	}
+
 	if(frameFilePrefix!=0)
 		{
 		/* Open the selected pre-recorded 3D video files: */
@@ -1013,6 +1066,14 @@ Sandbox::Sandbox(int& argc,char**& argv)
 
 Sandbox::~Sandbox(void)
 	{
+	// Height Extract Change
+	/* SARB - Stop the serverthread when sandbox stops */
+	if(this->m_serverHandler)
+	{
+		this->m_serverHandler->stopServer();
+		std::cout << "\nServer thread stopped\n";
+	}
+
 	/* Stop streaming depth frames: */
 	camera->stopStreaming();
 	delete camera;

@@ -109,6 +109,13 @@ class DepthImageRenderer:public GLObject
 	void renderSurfaceTemplate(GLContextData& contextData) const; // Renders the template quad strip mesh using current OpenGL settings
 	void renderDepth(const PTransform& projectionModelview,GLContextData& contextData) const; // Renders the surface into a pure depth buffer, for early z culling or shadow passes etc.
 	void renderElevation(const PTransform& projectionModelview,GLContextData& contextData) const; // Renders the surface's elevation relative to the base plane into the current one-component floating-point valued frame buffer
+
+	// Height Extract Change
+	Kinect::FrameBuffer getHeightMap() const
+	{
+		//Kinect::FrameBuffer temp = depthImage;
+		return depthImage;
+	}
 	};
 
 #endif

@@ -40,6 +40,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #include <Kinect/FrameBuffer.h>
 #include <Kinect/FrameSource.h>
 
+// Height Extrect Change
+#include <thread>           // SARB - c++11 Server thread.
+#include <memory>           // SARB - c++11 Unique ptr
+#include  <fstream>
+#include "server/ServerHandler.hpp" // handle our server
+#include <vector>
+
 #include "Types.h"
 
 /* Forward declarations: */
@@ -184,6 +191,14 @@ class Sandbox:public Vrui::Application,public GLObject
 	
 	/* Methods from GLObject: */
 	virtual void initContext(GLContextData& contextData) const;
+
+	// Height Extraction Change
+	/* SARB - Server members */
+
+	/* SARB server Handler for the server */
+	std::unique_ptr<SARB::ServerHandler> m_serverHandler;
+	std::ofstream m_outFileSARB;
+	bool m_printFileSARB;
 	};
 
 #endif
